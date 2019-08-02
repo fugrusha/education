@@ -26,35 +26,22 @@ def generate_access_config(access, psecurity = False):
     port_security = ['switchport port-security maximum 2',
                      'switchport port-security violation restrict',
                      'switchport port-security']
-
-    INTERF = [intf for intf, vlan in access.items()]
-    PORTS_DICT = {key: [] for key in INTERF}
-
+    INTERF = access.keys()
+    #INTERF = [intf for intf, vlan in access.items()]
+    VALUES_LIST = access.values()
+    
     if psecurity:
-      for key, value in PORTS_DICT.items():
-        for intf, vlan in access.items():
-          PORTS = []
-          for command in access_template:
-            if command.endswith('access vlan'):
-              PORTS.append(command + ' {}'.format(vlan))
-            else:
-              PORTS.append(command)
-          for security_command in port_security:
-            PORTS.append('* {}'.format(security_command))
-        PORTS_DICT[key].append(PORTS)
+      for vlan in VALUES_LIST:
+        commands = [' {} {}'.format(command, vlan) if command.endswith('access vlan') else ' {}'.format(command) for command in access_template]
+      security_commands = [' {}'.format(command) for command in port_security]
+      VALUES = commands + security_commands
     else:
-      for key, value in PORTS_DICT.items():
-        for intf, vlan in access.items():
-          PORTS = []
-          for command in access_template:
-            if command.endswith('access vlan'):
-              PORTS.append(command + ' {}'.format(vlan))
-            else:
-              PORTS.append(command)
-        PORTS_DICT[key].append(PORTS)
+      for vlan in VALUES_LIST:
+        commands = [' {} {}'.format(command, vlan) if command.endswith('access vlan') else ' {}'.format(command) for command in access_template]
+      VALUES = commands
 
+    PORTS_DICT = {key: VALUES for key in INTERF}
     return PORTS_DICT
-
 
 
 access_dict = { 'FastEthernet0/12':10,
